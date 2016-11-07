@@ -1,3 +1,12 @@
+## Installation
+
+Clone the repo and install the requirements:
+```
+git clone https://github.com/r0fls/Fastly-Service-CLI.git fastly-cli
+cd fastly-cli
+pip install -r requirements
+```
+
 ### Modify a service
 
 Currently these actions will activate a new version of the service, cloned from the latest one:
