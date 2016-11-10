@@ -5,7 +5,7 @@ import argparse
 import os
 
 # this is required but you can also pass it in as an argument
-API_KEY = os.environ['FASTLY_API_KEY']
+API_KEY = os.environ.get('FASTLY_API_KEY', '')
 
 # This can be passed into the function directly or set here
 VCL_LOC = ''
@@ -83,6 +83,23 @@ def upload_vcl(name, vcl=VCL_LOC, service_version=None):
         raise FastlyException("Error from Fastly API: {}".format(resp.text))
     else:
         return resp
+
+def delete_vcl(service_name, vcl_name="main", service_version=None):
+    '''
+    Upload a VCL to the service identified by `name`.
+    '''
+    service = get_service(service_name)
+    if not service_version:
+        service_version = service["version"]
+    resp = requests.delete('https://api.fastly.com/service/{0}/version/{1}/vcl/{2}'.format(service["id"], service_version, vcl_name),
+                          headers={"Fastly-Key": API_KEY,
+                                   "Accept": "application/json"
+                                  })
+    if resp.status_code != 200:
+        raise FastlyException("Error from Fastly API: {}".format(resp.text))
+    else:
+        return resp
+
 
 
 def upload_vcl_by_id(fastly_service_id, fastly_service_version, vcl):
@@ -289,6 +306,7 @@ def parse_args(args):
     parser.add_argument('--backend', help='URL of backend.')
     parser.add_argument('--domain', help='Fully Qualified Domain Name.')
     parser.add_argument('--modify', default=True, help='flag to modify an existing service; options are --vcl, --domain, and --backend', nargs='?', const=True)
+    parser.add_argument('--activate', default=True, help='Whether to activate the new service. Defaults to True. Valid Inputs are 0 and 1.')
     return  parser.parse_args(args)
 
 
@@ -313,11 +331,13 @@ def main(args):
         if args.backend:
             create_backend(args.name, args.backend, cert=args.cert, cert_domain=args.domain, service_version=version)
         if args.vcl:
+            delete_vcl(args.name, service_version=version)
             upload_vcl(args.name, args.vcl, service_version=version)
         if args.domain:
             add_domain(args.name, args.domain, service_version=version)
         # activate the new service, after modifying it
-        activate_service(args.name, service_version=version)
+        if args.activate:
+            activate_service(args.name, service_version=version)
     else:
         print("See help by using the --help flag. Or visit https://lab.plat.farm/r0fls/pe-automation/tree/master/fastly".format())
 
