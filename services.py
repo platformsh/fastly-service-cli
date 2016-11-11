@@ -311,24 +311,24 @@ def main(args):
 
     if args.modify:
         # need to clone the latest service to modify it
-        new_service = clone_service(args.name, args.key)
+        new_service = clone_service(args.name, api_key=args.key)
         # our new version number
         version = new_service["number"]
         if args.backend:
-            create_backend(args.name, args.backend, cert=args.cert, cert_domain=args.domain, service_version=version, args.key)
+            create_backend(args.name, args.backend, cert=args.cert, cert_domain=args.domain, service_version=version, api_key=args.key)
         if args.vcl:
             try:
                 # try to delete the existing VCL
-                delete_vcl(args.name, service_version=version, args.key)
+                delete_vcl(args.name, service_version=version, api_key=args.key)
             except:
                 # there was nothing to delete
                 pass
-            upload_vcl(args.name, args.vcl, service_version=version, args.key)
+            upload_vcl(args.name, args.vcl, service_version=version, api_key=args.key)
         if args.domain:
-            add_domain(args.name, args.domain, service_version=version, args.key)
+            add_domain(args.name, args.domain, service_version=version, api_key=args.key)
         # activate the new service, after modifying it
         if args.activate:
-            activate_service(args.name, service_version=version, args.key)
+            activate_service(args.name, service_version=version, api_key=args.key)
     else:
         print("See help by using the --help flag. Or visit https://lab.plat.farm/r0fls/pe-automation/tree/master/fastly".format())
 
