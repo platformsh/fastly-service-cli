@@ -26,13 +26,13 @@ class FastlyException(Exception):
         pass
 
 
-def make_service(name):
+def make_service(name, api_key=API_KEY):
     '''
     Make a fastly service with the given name. Should take
     other params (domain name, url)
     '''
     serv = requests.post('https://api.fastly.com/service',
-                         headers={"Fastly-Key": API_KEY,
+                         headers={"Fastly-Key": api_key,
                                   "Content-Type": "application/json",
                                   "Accept": "application/json"
                                   },
@@ -42,24 +42,24 @@ def make_service(name):
     return serv
 
 
-def delete_service(name):
+def delete_service(name, api_key=API_KEY):
     '''
     Delete the service with the given name.
     '''
-    sid = get_service(name)["id"]
+    sid = get_service(name, api_key)["id"]
     return requests.delete('https://api.fastly.com/service/{}'.format(sid),
-                           headers={"Fastly-Key": API_KEY,
+                           headers={"Fastly-Key": api_key,
                                     "Accept": "application/json"
                                     })
 
 
-def get_service(name):
+def get_service(name, api_key=API_KEY):
     '''
     Return a service with the given name. Used for retrieving service ID.
     '''
     # get all the services
     services =  requests.get('https://api.fastly.com/service',
-                             headers={"Fastly-Key": API_KEY,
+                             headers={"Fastly-Key": api_key,
                                       "Accept": "application/json"
                                       })
     # Get the latest version
@@ -71,28 +71,28 @@ def get_service(name):
 
 
 
-def upload_vcl(name, vcl=VCL_LOC, service_version=None):
+def upload_vcl(name, vcl=VCL_LOC, service_version=None, api_key=API_KEY):
     '''
     Upload a VCL to the service identified by `name`.
     '''
-    service = get_service(name)
+    service = get_service(name, api_key)
     if not service_version:
         service_version = service["version"]
-    resp =  upload_vcl_by_id(service["id"], service_version, vcl)
+    resp =  upload_vcl_by_id(service["id"], service_version, vcl, api_key)
     if resp.status_code != 200:
         raise FastlyException("Error from Fastly API: {}".format(resp.text))
     else:
         return resp
 
-def delete_vcl(service_name, vcl_name="main", service_version=None):
+def delete_vcl(service_name, vcl_name="main", service_version=None, api_key=API_KEY):
     '''
     Upload a VCL to the service identified by `name`.
     '''
-    service = get_service(service_name)
+    service = get_service(service_name, api_key)
     if not service_version:
         service_version = service["version"]
     resp = requests.delete('https://api.fastly.com/service/{0}/version/{1}/vcl/{2}'.format(service["id"], service_version, vcl_name),
-                          headers={"Fastly-Key": API_KEY,
+                          headers={"Fastly-Key": api_key,
                                    "Accept": "application/json"
                                   })
     if resp.status_code != 200:
@@ -102,12 +102,12 @@ def delete_vcl(service_name, vcl_name="main", service_version=None):
 
 
 
-def upload_vcl_by_id(fastly_service_id, fastly_service_version, vcl):
+def upload_vcl_by_id(fastly_service_id, fastly_service_version, vcl, api_key=API_KEY):
     '''
     Upload a VCL ot the service identified by `fastly_id`.
     '''
     resp = requests.post('https://api.fastly.com/service/{0}/version/{1}/vcl'.format(fastly_service_id, fastly_service_version ),
-                          headers={"Fastly-Key": API_KEY,
+                          headers={"Fastly-Key": api_key,
                                    "Content-Type": "application/json",
                                    "Accept": "application/json"
                                   },
@@ -117,23 +117,23 @@ def upload_vcl_by_id(fastly_service_id, fastly_service_version, vcl):
         raise FastlyException("Error from Fastly API: {}".format(resp.text))
 
     resp = requests.put('https://api.fastly.com/service/{0}/version/{1}/vcl/Main/main'.format(fastly_service_id, fastly_service_version ),
-                          headers={"Fastly-Key": API_KEY,
+                          headers={"Fastly-Key": api_key,
                                    "Content-Type": "application/json",
                                    "Accept": "application/json"
                                   })
     return resp
 
 
-def add_domain(name, domain, service_version=None):
+def add_domain(name, domain, service_version=None, api_key=API_KEY):
     '''
     Takes (name, domain). Adds a domain to the latest version of the service.
     '''
-    service_id = get_service(name)["id"]
+    service_id = get_service(name, api_key)["id"]
     if not service_version:
         service_version = get_service(name)["version"]
     resp = requests.post('https://api.fastly.com/service/{}/version/{}/domain'.format(service_id,
                                                                                service_version),
-                        headers={"Fastly-Key": API_KEY,
+                        headers={"Fastly-Key": api_key,
                                  "Content-Type": "application/json",
                                  "Accept": "application/json"
                                 },
@@ -145,7 +145,7 @@ def add_domain(name, domain, service_version=None):
 
 
 
-def delete_domain(name, domain):
+def delete_domain(name, domain, api_key=API_KEY):
     '''
     Takes (name, domain). Deletes a domain from the latest version of the service.
     '''
@@ -154,18 +154,18 @@ def delete_domain(name, domain):
     requests.delete('https://api.fastly.com/service/{}/version/{}/domain/{}'.format(service_id,
                                                                                     service_version,
                                                                                     domain),
-                    headers={"Fastly-Key": API_KEY,
+                    headers={"Fastly-Key": api_key,
                              "Accept": "application/json"
                             })
 
 
-def create_backend(name, backend, cert=None, cert_domain=None, service_version=None):
+def create_backend(name, backend, cert=None, cert_domain=None, service_version=None, api_key=API_KEY):
     '''
     Takes (name, backend) and updates service with `name` to use `backend`.
     '''
-    service_id = get_service(name)["id"]
+    service_id = get_service(name, api_key)["id"]
     if not service_version:
-        service_version = get_service(name)["version"]
+        service_version = get_service(name, api_key)["version"]
 
 
     backend_settings = {"address": backend,
@@ -183,7 +183,7 @@ def create_backend(name, backend, cert=None, cert_domain=None, service_version=N
 
     resp = requests.post('https://api.fastly.com/service/{}/version/{}/backend'.format(service_id,
                                                                                 service_version),
-                        headers={"Fastly-Key": API_KEY,
+                        headers={"Fastly-Key": api_key,
                                  "Content-Type": "application/json",
                                  "Accept": "application/json",
                                 },
@@ -195,29 +195,29 @@ def create_backend(name, backend, cert=None, cert_domain=None, service_version=N
         return resp
 
 
-def delete_backend(name, domain):
+def delete_backend(name, domain, api_key=API_KEY):
     '''
     Takes (name, backend). Deletes a backend from the latest version of the service.
     '''
-    service_id = get_service(name)["id"]
+    service_id = get_service(name, api_key)["id"]
     service_version = get_service(name)["version"]
     requests.delete('https://api.fastly.com/service/{}/version/{}/backend/{}'.format(service_id,
                                                                                      service_version,
                                                                                      backend),
-                    headers={"Fastly-Key": API_KEY,
+                    headers={"Fastly-Key": api_key,
                              "Accept": "application/json"
                             })
 
 
-def clone_service(name):
+def clone_service(name, api_key=API_KEY):
     '''
     Clone the lastest service version.
     '''
-    service_id = get_service(name)["id"]
-    service_version = get_service(name)["version"]
+    service_id = get_service(name, api_key)["id"]
+    service_version = get_service(name, api_key)["version"]
     resp = requests.put('https://api.fastly.com/service/{}/version/{}/clone'.format(service_id,
                                                                                     service_version),
-                        headers={"Fastly-Key": API_KEY,
+                        headers={"Fastly-Key": api_key,
                                  "Accept": "application/json",
                                 })
     if resp.status_code != 200:
@@ -226,17 +226,17 @@ def clone_service(name):
         return resp.json()
 
 
-def activate_service(name, service_version=None):
+def activate_service(name, service_version=None, api_key=API_KEY):
     '''
     Activate a service identified by name and number.
     '''
-    service = get_service(name)
+    service = get_service(name, api_key)
     service_id = service["id"]
     if not service_version:
         service_version = service["version"]
     resp = requests.put('https://api.fastly.com/service/{}/version/{}/activate'.format(service_id,
                                                                                     service_version),
-                        headers={"Fastly-Key": API_KEY,
+                        headers={"Fastly-Key": api_key,
                                  "Accept": "application/json",
                                 })
 
@@ -244,17 +244,6 @@ def activate_service(name, service_version=None):
         raise FastlyException("Error from Fastly API: {}".format(resp.text))
     else:
         return resp
-
-
-def get_pass():
-    '''
-    Returns the password from the pass repo for the admin account.
-    '''
-    process = subprocess.Popen(['pass',
-                                'fastly/magentofastly-admin@clients.internal.platform.sh'],
-                                 stdout=subprocess.PIPE)
-    out, err = process.communicate()
-    return out.strip()
 
 
 def create_token(name,
@@ -284,7 +273,7 @@ def create_token(name,
         return token
 
 
-def get_token(service_name):
+def get_token(service_name, api_key=API_KEY):
     '''
     Get the token for a service by service name.
     '''
@@ -320,24 +309,26 @@ def main(args):
     if not 'API_KEY' in vars() and not args.key:
         raise AuthException("Set the FASTLY_API_KEY environment variable or pass it in to the CLI with --key <API_KEY>".format(__file__))
 
-    if args.key:
-        API_KEY = args.key
-
     if args.modify:
         # need to clone the latest service to modify it
-        new_service = clone_service(args.name)
+        new_service = clone_service(args.name, args.key)
         # our new version number
         version = new_service["number"]
         if args.backend:
-            create_backend(args.name, args.backend, cert=args.cert, cert_domain=args.domain, service_version=version)
+            create_backend(args.name, args.backend, cert=args.cert, cert_domain=args.domain, service_version=version, args.key)
         if args.vcl:
-            delete_vcl(args.name, service_version=version)
-            upload_vcl(args.name, args.vcl, service_version=version)
+            try:
+                # try to delete the existing VCL
+                delete_vcl(args.name, service_version=version, args.key)
+            except:
+                # there was nothing to delete
+                pass
+            upload_vcl(args.name, args.vcl, service_version=version, args.key)
         if args.domain:
-            add_domain(args.name, args.domain, service_version=version)
+            add_domain(args.name, args.domain, service_version=version, args.key)
         # activate the new service, after modifying it
         if args.activate:
-            activate_service(args.name, service_version=version)
+            activate_service(args.name, service_version=version, args.key)
     else:
         print("See help by using the --help flag. Or visit https://lab.plat.farm/r0fls/pe-automation/tree/master/fastly".format())
 
