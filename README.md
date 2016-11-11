@@ -4,7 +4,7 @@ Clone the repo and install the requirements:
 ```
 git clone https://github.com/r0fls/Fastly-Service-CLI.git fastly-cli
 cd fastly-cli
-pip install -r requirements
+pip install -r requirements.txt
 ```
 
 ### Modify a service
