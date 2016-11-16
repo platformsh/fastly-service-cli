@@ -9,7 +9,7 @@ pip install -r requirements.txt
 
 ### Modify a service
 
-Currently these actions will activate a new version of the service, cloned from the latest one. For Magento Enterprise Cloud customers, the `<SERVICE_NAME>` will be the same as the SSH user that you would use to connect to your environments. So, your `<PROJECT_ID>`, or `<PROJECT_ID>_stg` for staging.
+Currently these actions will activate a new version of the service, cloned from the latest one.
 
 ##### Add a new VCL
 ```
