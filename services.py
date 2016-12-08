@@ -63,6 +63,8 @@ def get_service(name, api_key=API_KEY):
                                       "Accept": "application/json"
                                       })
     # Get the latest version
+    if services.status_code != 200:
+        raise UsageException("Received error from Fastly: {}".format(services.text))
     try:
         return max([service for service in services.json()\
                     if service["name"] == name], key=lambda x: x["version"])
@@ -313,6 +315,9 @@ def main(args):
         # need to clone the latest service to modify it
         new_service = clone_service(args.name, api_key=args.key)
         # our new version number
+        if new_service.status_code != '200':
+            raise UsageException("Received error from Fastly: {}".format(
+                new_service.text))
         version = new_service["number"]
         if args.backend:
             create_backend(args.name, args.backend, cert=args.cert, cert_domain=args.domain, service_version=version, api_key=args.key)
