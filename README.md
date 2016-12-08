@@ -2,26 +2,26 @@
 
 Clone the repo and install the requirements:
 ```
-git clone https://github.com/r0fls/Fastly-Service-CLI.git fastly-cli
+git clone https://github.com/r0fls/fastly-service-cli.git fastly-cli
 cd fastly-cli
 pip install -r requirements.txt
 ```
 
 ### Modify a service
 
-Currently these actions will activate a new version of the service, cloned from the latest one. For Magento Enterprise Cloud customers, the `<SERVICE_NAME>` will be the same as the SSH user that you would use to connect to your environments. So, your `<PROJECT_ID>`, or `<PROJECT_ID>_stg` for staging.
+Currently these actions will activate a new version of the service, cloned from the latest one.
 
-##### VCL
+##### Add a new VCL
 ```
 python services.py --name <SERVICE_NAME> --vcl <VCL_LOCATION> --key <API_KEY>
 ```
 
-##### Backend
+##### Add an additional Backend
 ```
 python services.py --name <SERVICE_NAME> --backend <BACKEND_URL> --key <API_KEY>
 ```
 
-##### Domain
+##### Add an additional Domain
 ```
 python services.py --name <SERVICE_NAME> --domain <DOMAIN_NAME> --key <API_KEY>
 ```
